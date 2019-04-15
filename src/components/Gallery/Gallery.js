@@ -4,6 +4,7 @@ import axios from 'axios';
 import Image from '../Image';
 import './Gallery.scss';
 import FontAwesome from 'react-fontawesome';
+import InfiniteScroll from 'react-infinite-scroll-component';
 
 class Gallery extends React.Component {
   static propTypes = {
@@ -15,7 +16,7 @@ class Gallery extends React.Component {
     this.state = {
       images: [],
       galleryWidth: this.getGalleryWidth(),
-      showOnlyFavorites: false,
+      showImagesFlag: false,
       tempImages: []
     };
 
@@ -31,7 +32,7 @@ class Gallery extends React.Component {
       return 1000;
     }
   }
-  getImages(tag) {
+  getImages(tag, flag) {
     const getImagesUrl = `services/rest/?method=flickr.photos.search&api_key=522c1f9009ca3609bcbaf08545f067ad&tags=${tag}&tag_mode=any&per_page=100&format=json&safe_search=1&nojsoncallback=1`;
     const baseUrl = 'https://api.flickr.com/';
     axios({
@@ -47,20 +48,25 @@ class Gallery extends React.Component {
           res.photos.photo &&
           res.photos.photo.length > 0
         ) {
-          this.setState({images: res.photos.photo});
+          if (flag === "images") {
+            this.setState({images: res.photos.photo});
+          }
+          else if (flag === "tempImages") { // This code updates tempImages[] (for being concatenated to images[])
+            this.setState({tempImages: res.photos.photo});
+          }
         }
       });
   }
 
   componentDidMount() {
-    this.getImages(this.props.tag);
+    this.getImages(this.props.tag, "images");
     this.setState({
       galleryWidth: document.body.clientWidth
     });
   }
 
   componentWillReceiveProps(props) {
-    this.getImages(props.tag);
+    this.getImages(props.tag, "images");
   }
 
   cloneImage(current_dto) {
@@ -81,7 +87,7 @@ class Gallery extends React.Component {
 
     return count;
   }
-
+  // This function updates local storage according to chosen favorite image
   favoriteImage(current_dto) {
     if(localStorage.getItem(current_dto.id) != null) {
       localStorage.removeItem(current_dto.id);
@@ -90,21 +96,17 @@ class Gallery extends React.Component {
       localStorage.setItem(current_dto.id, JSON.stringify(current_dto));
     }
   }
-
-  
+  // This function updates UI according to user's choice (show only favorites)
   handleFavoritesClick(e) {
     e.preventDefault();
-    this.setState({showOnlyFavorites: !this.state.showOnlyFavorites});
-    console.log(this.state.showOnlyFavorites);
-    if(this.state.showOnlyFavorites) {
-      //console.log("images before copy:");
-      //console.log(this.state.images);
-      this.state.tempImages = JSON.parse(JSON.stringify(this.state.images));
-      this.setState({tempImages: this.state.tempImages});
-
-      console.log("tempImages after copy:");
-      console.log(this.state.tempImages);
-
+    //console.log(this.state.showImagesFlag);
+    this.setState({
+        showImagesFlag: !this.state.showImagesFlag
+      });
+    this.render();
+    //console.log(this.state.showImagesFlag);
+    if(!this.state.showImagesFlag) {
+      //console.log("showImagesFlag:" + this.state.showImagesFlag);
       var favorites = [];
       for(var i = 0; i < localStorage.length; i++) {
         var key = localStorage.key(i);
@@ -116,21 +118,38 @@ class Gallery extends React.Component {
       this.setState({images: this.state.images});
     }
     else {
-      //console.log("tempImages before copy:");
-      //console.log(this.state.tempImages);
-      this.state.images = JSON.parse(JSON.stringify(this.state.tempImages));
+      this.getImages(this.props.tag, "images");
       this.setState({images: this.state.images});
-      console.log("images after copy:");
-      console.log(this.state.images);
     }
-    /*this.render();*/
+    this.render();
   }
 
+  // This function gets more images into tempImages[] (same way as getting them into images[]),
+  // then, concats new images to images[]
+  fetchMoreData = () => {
+    //console.log("fetchMoreData: ");
+    //console.log(this.state.showImagesFlag);
+    if (!this.state.showImagesFlag) {
+      this.getImages(this.props.tag, "tempImages");
+    
+      setTimeout(() => {
+        this.setState({
+          images: this.state.images.concat(this.state.tempImages)
+        });
+      }, 1500);
+      this.render();
+    }
+  };
 
   render() {
     var seen = [];
     return (
       <div className="gallery-root">
+      <InfiniteScroll
+          dataLength={this.state.images.length}
+          next={this.fetchMoreData}
+          hasMore={true}
+        >
         <div className="gallery-favorites">
           <p>Show only Favorites</p>
           <a href="#" onClick={this.handleFavoritesClick}><FontAwesome className="image-icon" name="star" title="favorite"/></a></div>
@@ -145,7 +164,9 @@ class Gallery extends React.Component {
           }
           return <Image triggerCloneImage={this.cloneImage} triggerFavoriteImage={this.favoriteImage} key={objectKey} dto={dto} galleryWidth={this.state.galleryWidth}/>;
         })}
+        </InfiniteScroll>
       </div>
+      
     );
   }
 }
