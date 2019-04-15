@@ -13,13 +13,14 @@ class App extends React.Component {
     };
   }
 
+
   render() {
     return (
       <div className="app-root">
         <div className="app-header">
           <h2>Flickr Gallery</h2>
           <input className="app-input" onChange={event => this.setState({tag: event.target.value})} value={this.state.tag}/>
-        </div>
+          </div>
         <Gallery tag={this.state.tag}/>
       </div>
     );

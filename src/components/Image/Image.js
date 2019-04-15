@@ -20,6 +20,8 @@ class Image extends React.Component {
     };
 
     this.handleFlipImageClick = this.handleFlipImageClick.bind(this);
+    this.handleCloneImageClick = this.handleCloneImageClick.bind(this);
+    this.handleFavoriteImageClick = this.handleFavoriteImageClick.bind(this);
   }
 
   calcImageSize() {
@@ -46,6 +48,18 @@ class Image extends React.Component {
     this.render();
   }
 
+  handleCloneImageClick(e) {
+    e.preventDefault();
+    this.props.triggerCloneImage(this.props.dto);
+  }
+
+  handleFavoriteImageClick(e) {
+    e.preventDefault();
+    //this.setState({starred: !this.state.starred});
+    this.render();
+    this.props.triggerFavoriteImage(this.props.dto);
+  }
+
   render() {
     var flipped = this.state.flipped ? ' image-flipped' : '';
     return (
@@ -59,8 +73,9 @@ class Image extends React.Component {
         >
         <div className={flipped}>
           <a href="#" onClick={this.handleFlipImageClick}><FontAwesome className="image-icon" name="arrows-alt-h" title="flip"/></a>
-          <FontAwesome className="image-icon" name="clone" title="clone"/>
+          <a href="#" onClick={this.handleCloneImageClick}><FontAwesome className="image-icon" name="clone" title="clone"/></a>
           <FontAwesome className="image-icon" name="expand" title="expand"/>
+          <a href="#" onClick={this.handleFavoriteImageClick}><FontAwesome className="image-icon" name="star" title="favorite"/></a>
         </div>
       </div>
     );
