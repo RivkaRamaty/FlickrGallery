@@ -23,6 +23,7 @@ class Gallery extends React.Component {
     this.cloneImage = this.cloneImage.bind(this);
     this.favoriteImage = this.favoriteImage.bind(this);
     this.handleFavoritesClick = this.handleFavoritesClick.bind(this);
+    this.deleteImage = this.deleteImage.bind(this);
   }
 
   getGalleryWidth(){
@@ -32,6 +33,7 @@ class Gallery extends React.Component {
       return 1000;
     }
   }
+
   getImages(tag, flag) {
     const getImagesUrl = `services/rest/?method=flickr.photos.search&api_key=522c1f9009ca3609bcbaf08545f067ad&tags=${tag}&tag_mode=any&per_page=100&format=json&safe_search=1&nojsoncallback=1`;
     const baseUrl = 'https://api.flickr.com/';
@@ -71,10 +73,18 @@ class Gallery extends React.Component {
 
   cloneImage(current_dto) {
     var currentIndex = (this.state.images.indexOf(current_dto));
-
     this.state.images.splice(currentIndex, 0, current_dto);
     this.setState({images: this.state.images});
     this.render();
+  }
+
+  deleteImage(current_dto) {
+    var currentIndex = (this.state.images.indexOf(current_dto));
+    const newImages = this.state.images.slice();
+    newImages.splice(currentIndex, 1);
+    this.setState({
+      images: newImages
+    });
   }
 
   countOccurrence(seenSet,id){ 
@@ -84,7 +94,6 @@ class Gallery extends React.Component {
         count++;
       }
     });
-
     return count;
   }
   // This function updates local storage according to chosen favorite image
@@ -99,14 +108,11 @@ class Gallery extends React.Component {
   // This function updates UI according to user's choice (show only favorites)
   handleFavoritesClick(e) {
     e.preventDefault();
-    //console.log(this.state.showImagesFlag);
     this.setState({
         showImagesFlag: !this.state.showImagesFlag
       });
     this.render();
-    //console.log(this.state.showImagesFlag);
     if(!this.state.showImagesFlag) {
-      //console.log("showImagesFlag:" + this.state.showImagesFlag);
       var favorites = [];
       for(var i = 0; i < localStorage.length; i++) {
         var key = localStorage.key(i);
@@ -127,8 +133,6 @@ class Gallery extends React.Component {
   // This function gets more images into tempImages[] (same way as getting them into images[]),
   // then, concats new images to images[]
   fetchMoreData = () => {
-    //console.log("fetchMoreData: ");
-    //console.log(this.state.showImagesFlag);
     if (!this.state.showImagesFlag) {
       this.getImages(this.props.tag, "tempImages");
     
@@ -151,8 +155,9 @@ class Gallery extends React.Component {
           hasMore={true}
         >
         <div className="gallery-favorites">
-          <p>Show only Favorites</p>
-          <a href="#" onClick={this.handleFavoritesClick}><FontAwesome className="image-icon" name="star" title="favorite"/></a></div>
+          <p>Show Only Favorites / Show All (click the star)</p>
+          <a href="#" onClick={this.handleFavoritesClick}><FontAwesome name="star" title="favorite"/></a>
+        </div>
         {this.state.images.map(dto => {
           var objectKey = null;
           seen.push(dto.id);
@@ -162,7 +167,7 @@ class Gallery extends React.Component {
           }else{
              objectKey = 'image-' + dto.id;
           }
-          return <Image triggerCloneImage={this.cloneImage} triggerFavoriteImage={this.favoriteImage} key={objectKey} dto={dto} galleryWidth={this.state.galleryWidth}/>;
+          return <Image triggerCloneImage={this.cloneImage} triggerFavoriteImage={this.favoriteImage} triggerDeleteImage={this.deleteImage} key={objectKey} dto={dto} galleryWidth={this.state.galleryWidth}/>;
         })}
         </InfiniteScroll>
       </div>

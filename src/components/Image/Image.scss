@@ -1,6 +1,12 @@
 .image-flipped {
   -webkit-transform: scaleX(-1);
   transform: scaleX(-1);
+  transition: 0.5s ease-out;
+}
+
+.image-expand {
+  background-size: cover;
+  scale: 2;
 }
 
 .image-root {
@@ -10,7 +16,9 @@
   vertical-align: top;
   box-sizing: border-box;
   position: relative;
-  border: 1px solid white;
+  border: 1px solid rgb(5, 5, 5);
+  border-radius: 15px;
+  transition: 0.5s ease-out;
 
   > div {
     visibility: hidden;
@@ -51,5 +59,8 @@
       border-color: white;
     }
   }
-}
 
+  .image-color {
+    color: rgb(238, 255, 0);
+  }
+}

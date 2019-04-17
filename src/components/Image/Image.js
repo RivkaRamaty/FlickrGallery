@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import FontAwesome from 'react-fontawesome';
 import './Image.scss';
-import { Transform } from 'stream';
 
 class Image extends React.Component {
   static propTypes = {
@@ -15,13 +14,14 @@ class Image extends React.Component {
     this.calcImageSize = this.calcImageSize.bind(this);
     this.state = {
       size: 200,
-      flipped : false,
-      starred : false
+      flipped: false,
+      starred: false
     };
 
     this.handleFlipImageClick = this.handleFlipImageClick.bind(this);
     this.handleCloneImageClick = this.handleCloneImageClick.bind(this);
     this.handleFavoriteImageClick = this.handleFavoriteImageClick.bind(this);
+    this.handleDeleteImageClick = this.handleDeleteImageClick.bind(this);
   }
 
   calcImageSize() {
@@ -55,15 +55,22 @@ class Image extends React.Component {
 
   handleFavoriteImageClick(e) {
     e.preventDefault();
-    //this.setState({starred: !this.state.starred});
+    this.setState({starred: !this.state.starred});
     this.render();
     this.props.triggerFavoriteImage(this.props.dto);
   }
 
+  handleDeleteImageClick(e) {
+    e.preventDefault();
+    this.props.triggerDeleteImage(this.props.dto);
+  }
+
   render() {
     var flipped = this.state.flipped ? ' image-flipped' : '';
+    var starred = this.state.starred ? ' image-color' : '';
     return (
       <div
+      
         className={"image-root" + flipped}
         style={{
           backgroundImage: `url(${this.urlFromDto(this.props.dto)})`,
@@ -71,12 +78,14 @@ class Image extends React.Component {
           height: this.state.size + 'px'
         }}
         >
+        
         <div className={flipped}>
           <a href="#" onClick={this.handleFlipImageClick}><FontAwesome className="image-icon" name="arrows-alt-h" title="flip"/></a>
           <a href="#" onClick={this.handleCloneImageClick}><FontAwesome className="image-icon" name="clone" title="clone"/></a>
-          <FontAwesome className="image-icon" name="expand" title="expand"/>
-          <a href="#" onClick={this.handleFavoriteImageClick}><FontAwesome className="image-icon" name="star" title="favorite"/></a>
+          <a href="#" onClick={this.handleFavoriteImageClick}><FontAwesome className={"image-icon" + starred} name="star" title="favorite"/></a>
+          <a href="#" onClick={this.handleDeleteImageClick}><FontAwesome className="image-icon" name="trash-alt" title="delete"/></a>
         </div>
+        
       </div>
     );
   }
