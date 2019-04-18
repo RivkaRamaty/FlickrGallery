@@ -1,5 +1,4 @@
 var webpackCfg = require('./webpack.config');
-
 // Set node environment to testing
 process.env.NODE_ENV = 'test';
 
@@ -31,6 +30,11 @@ module.exports = function(config) {
         { type: 'html' },
         { type: 'text' }
       ]
-    }
+    },
+    plugins: [
+      'karma-phantomjs-launcher',
+      'karma-tap',
+      'karma-sourcemap-loader'
+    ]
   });
 };
